@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Generate the SEO head block, crawlable footer, and sitemap/robots for docs/.
+"""Generate the SEO head block, crawlable footer, and sitemap/robots for the site.
 
-``docs/`` is the yeaboi.ai website: hand-written flat HTML with no build step,
-served straight off ``main`` by GitHub Pages (``docs/CNAME``). That works fine
+This repo *is* the yeaboi.ai website: hand-written flat HTML with no build step,
+served straight off ``main`` by GitHub Pages (``CNAME``). That works fine
 for prose, and not at all for the dozen ``<meta>`` tags every page needs to be
 indexable — 18 files x (canonical + 10 OG/Twitter tags + JSON-LD + an analytics
 snippet) is precisely the thing that rots the moment someone adds page 19.
@@ -10,8 +10,7 @@ snippet) is precisely the thing that rots the moment someone adds page 19.
 The evidence it already rots: the same four asset references carry a
 hand-bumped ``?v=`` on every page, 72 strings that have to agree and that
 nothing checks. So this script owns the cache-bust too — one constant, one
-command, and ``tests/unit/test_site_seo.py`` fails if the committed HTML is
-stale.
+command, and ``tests/test_site_seo.py`` fails if the committed HTML is stale.
 
 **What it does not own: the words.** Each page's ``<title>`` and
 ``<meta name="description">`` are hand-written and good, and they live where an
@@ -25,12 +24,13 @@ Three non-obvious constraints, each learned the hard way:
    ``--check`` has to produce identical bytes in CI, and CI checks out at
    ``fetch-depth: 1``. So: no ``<lastmod>`` in the sitemap (a git-derived date
    disagrees with a shallow clone) and no ``softwareVersion`` in the JSON-LD
-   (``auto-version.yml`` pushes a version bump to PR branches and regenerates
-   nothing, so every such PR would go stale).
+   (the package version moves on every upstream release and regenerates nothing
+   here, so the site would be permanently stale). ``contracts/site.json`` carries
+   no version field for the same reason.
 2. **Output must be LF, trailing-whitespace-free, with exactly one final
-   newline.** ``.pre-commit-config.yaml`` runs ``trailing-whitespace`` and
-   ``end-of-file-fixer`` over ``docs/``; if the generator disagrees with the
-   hooks they rewrite each other forever and ``--check`` never converges.
+   newline.** ``trailing-whitespace`` and ``end-of-file-fixer`` run over this
+   repo; if the generator disagrees with them they rewrite each other forever
+   and ``--check`` never converges.
 3. **``NAV_GROUPS`` in site.js is read, never written.** It is the single source
    of truth for the docs tree and it drives the crawlable footer here. Writing
    it back would put a generated JS literal in a 1630-line hand-tuned file with
@@ -55,28 +55,32 @@ from enum import Enum
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-DOCS = ROOT / "docs"
-SITE_JS = DOCS / "assets" / "site.js"
+# The published site is this repo's root: index.html and 404.html sit beside the
+# docs/ subtree, and GitHub Pages serves the lot.
+SITE_DIR = ROOT
+SITE_JS = SITE_DIR / "assets" / "site.js"
 SITE = "https://yeaboi.ai"
+
+# Everything this site asserts about the package it documents — the Python
+# floor, the repo URL, the install target — is a fact about the yeaboi repo,
+# vendored here by sha. Never edit contracts/site.json in this repo: change it
+# upstream and run `make contracts-sync`.
+CONTRACT = json.loads((ROOT / "contracts" / "site.json").read_text(encoding="utf-8"))
 
 
 def _runtime_platform() -> str:
-    """The published Python floor, read from pyproject rather than restated here.
+    """The published Python floor, derived rather than restated.
 
-    This string used to be a literal, which meant `requires-python` could move and
+    It was a literal once, which meant `requires-python` could move upstream and
     the site would keep advertising the old floor with every test green.
     """
-    pyproject = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
-    match = re.search(r'^requires-python\s*=\s*"([^"]+)"', pyproject, re.MULTILINE)
-    if not match:  # pragma: no cover - pyproject always has one
-        raise SystemExit("gen_site_seo: no requires-python in pyproject.toml")
-    floor = match.group(1).lstrip(">=").split(",")[0].strip()
+    floor = CONTRACT["requires_python"].lstrip(">=").split(",")[0].strip()
     return f"Python {floor}+"
 
 
 logger = logging.getLogger(__name__)
 
-# Bump when anything under docs/assets/ or docs/docs/assets/ changes. Rewritten
+# Bump when anything under assets/ or docs/assets/ changes. Rewritten
 # into every ?v= on every page, so this is the only place it is ever edited.
 ASSET_VERSION = 136
 
@@ -113,7 +117,7 @@ class Kind(Enum):
     worth more than a mixin nothing reads.
     """
 
-    LANDING = "landing"  # docs/index.html — the marketing page at /
+    LANDING = "landing"  # index.html — the marketing page at /
     HUB = "hub"  # a section index that lists its children
     ARTICLE = "article"  # a leaf documentation page
     ERROR = "error"  # 404.html — noindex, no canonical, not in the sitemap
@@ -155,18 +159,18 @@ KINDS: dict[str, Kind] = {
 
 
 def rel_of(path: Path) -> str:
-    """Repo-relative posix key under ``docs/`` — the key used by KINDS."""
-    return path.relative_to(DOCS).as_posix()
+    """Repo-relative posix key — the key used by KINDS."""
+    return path.relative_to(SITE_DIR).as_posix()
 
 
 def url_for(path: Path) -> str:
-    """Site-absolute URL for a repo path, applying the Pages strip rule.
+    """Site-absolute URL for a repo path.
 
-    GitHub Pages serves ``docs/`` AS the domain root, so exactly one directory
-    level disappears: ``docs/docs/modes/retro.html`` is served at
-    ``/docs/modes/retro.html``. Only the site root index collapses to ``/``.
+    Pages serves this repo's root as the domain root, so a path maps straight
+    through: ``docs/modes/retro.html`` is served at ``/docs/modes/retro.html``.
+    Only the site root index collapses to ``/``.
 
-    Note ``docs/docs/index.html`` maps to ``/docs/index.html``, NOT ``/docs/``,
+    Note ``docs/index.html`` maps to ``/docs/index.html``, NOT ``/docs/``,
     even though both URLs resolve. Every path in ``NAV_GROUPS``, the hardcoded
     ``navigateTo("/docs/index.html", true)`` in ``buildRail``, and
     ``setDocsCurrent``'s string-equality check all use the explicit filename —
@@ -290,9 +294,8 @@ _ORG_ID = f"{SITE}/#organization"
 _SITE_ID = f"{SITE}/#website"
 _SOFTWARE_ID = f"{SITE}/#software"
 
-# Kept in sync with pyproject.toml [project.urls] by test_site_seo.py.
-REPO_URL = "https://github.com/dinho149/yeaboi.ai"
-PYPI_URL = "https://pypi.org/project/yeaboi/"
+REPO_URL = CONTRACT["repository"]
+PYPI_URL = CONTRACT["pypi"]
 
 
 def _organization() -> dict:
@@ -704,8 +707,14 @@ def render_robots() -> str:
     )
 
 
+# Directories GitHub Pages does not serve. `.tooling/` is a clone of another
+# repo entirely; an .html under any of these would otherwise be treated as a
+# page of this site and demand a KINDS entry.
+_NOT_PUBLISHED = frozenset({".git", ".tooling", ".github", ".claude", "scripts", "tests", "contracts", "node_modules"})
+
+
 def pages() -> list[Path]:
-    return sorted(DOCS.rglob("*.html"))
+    return sorted(p for p in SITE_DIR.rglob("*.html") if not _NOT_PUBLISHED.intersection(p.relative_to(SITE_DIR).parts))
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -721,8 +730,8 @@ def main(argv: list[str] | None = None) -> int:
         raise SystemExit(msg)
 
     wanted: dict[Path, str] = {p: render(p, groups) for p in pages()}
-    wanted[DOCS / "sitemap.xml"] = render_sitemap(pages())
-    wanted[DOCS / "robots.txt"] = render_robots()
+    wanted[SITE_DIR / "sitemap.xml"] = render_sitemap(pages())
+    wanted[SITE_DIR / "robots.txt"] = render_robots()
 
     stale = [p for p, text in wanted.items() if not p.exists() or p.read_text(encoding="utf-8") != text]
     if args.check:
@@ -730,7 +739,7 @@ def main(argv: list[str] | None = None) -> int:
             names = "\n  ".join(str(p.relative_to(ROOT)) for p in stale)
             logger.error("stale generated site output:\n  %s\n\nrun: make site-seo", names)
             return 1
-        logger.info("✓ docs/ SEO output is up to date (%d pages)", len(pages()))
+        logger.info("✓ SEO output is up to date (%d pages)", len(pages()))
         return 0
 
     for path, text in wanted.items():

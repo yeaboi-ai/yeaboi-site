@@ -1,28 +1,25 @@
-"""Tests for scripts/gen_site_seo.py and the generated docs/ site output.
+"""Tests for scripts/gen_site_seo.py and the generated site output.
 
-``docs/`` is published as yeaboi.ai by GitHub Pages straight off ``main`` — there
-is no build step and no deploy job, so a stale SEO block, a wrong canonical or a
-dropped sitemap entry goes live silently. These tests are the ``--check``: unlike
-``make web-check`` (which needs Node, absent from the Python CI lanes), Python is
-in every lane, so asserting staleness here puts the guard into ``make test-fast``,
-the pre-commit hook and both CI jobs at once.
+This repo is published as yeaboi.ai by GitHub Pages straight off ``main`` —
+there is no build step and no deploy job, so a stale SEO block, a wrong
+canonical or a dropped sitemap entry goes live silently. These tests are the
+``--check``, which is why they are the whole test suite here.
 """
 
 import importlib.util
 import json
 import re
-import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
 import pytest
 
-if sys.version_info >= (3, 11):
-    import tomllib
-else:  # 3.10 — tomllib landed in 3.11; the `dev` extra supplies the backport.
-    import tomli as tomllib
+ROOT = Path(__file__).resolve().parents[1]
 
-ROOT = Path(__file__).resolve().parents[2]
+# The package facts the site advertises, vendored from the yeaboi repo by sha.
+# `make contracts-check` asserts this copy still matches the pin; these tests
+# assert the published HTML still matches this copy.
+CONTRACT = json.loads((ROOT / "contracts" / "site.json").read_text(encoding="utf-8"))
 
 # scripts/ is not a package, so load the module straight from its file path.
 _MODULE_PATH = ROOT / "scripts" / "gen_site_seo.py"
@@ -30,7 +27,7 @@ _spec = importlib.util.spec_from_file_location("gen_site_seo", _MODULE_PATH)
 seo = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(seo)
 
-DOCS = seo.DOCS
+DOCS = seo.SITE_DIR
 PAGES = seo.pages()
 NAV = seo.parse_nav_groups(seo.SITE_JS.read_text(encoding="utf-8"))
 IDS = [p.relative_to(DOCS).as_posix() for p in PAGES]
@@ -69,8 +66,8 @@ class TestGeneratedOutputIsFresh:
     def test_whitespace_matches_precommit_hooks(self, path: Path) -> None:
         """LF, no trailing whitespace, exactly one final newline.
 
-        `.pre-commit-config.yaml` runs trailing-whitespace and end-of-file-fixer
-        over docs/. If the generator disagrees, the hooks rewrite the file, the
+        The trailing-whitespace and end-of-file-fixer conventions apply to this
+        repo. If the generator disagrees with them, they rewrite the file, the
         check then fails, and the loop never converges.
         """
         text = _read(path)
@@ -103,7 +100,7 @@ class TestRegistryParity:
     def test_every_page_has_a_kind(self) -> None:
         found, declared = set(IDS), set(seo.KINDS)
         assert found == declared, (
-            f"KINDS is out of sync with docs/.\n"
+            f"KINDS is out of sync with the pages on disk.\n"
             f"  missing entries: {sorted(found - declared)}\n"
             f"  stale entries:   {sorted(declared - found)}\n"
             f"Edit KINDS in scripts/gen_site_seo.py."
@@ -117,7 +114,7 @@ class TestRegistryParity:
             if seo.KINDS[p.relative_to(DOCS).as_posix()] not in (seo.Kind.LANDING, seo.Kind.ERROR)
         }
         assert nav_paths == page_urls, (
-            f"NAV_GROUPS in docs/assets/site.js disagrees with the docs pages on disk.\n"
+            f"NAV_GROUPS in assets/site.js disagrees with the docs pages on disk.\n"
             f"  in nav, no file:  {sorted(nav_paths - page_urls)}\n"
             f"  file, not in nav: {sorted(page_urls - nav_paths)}"
         )
@@ -257,14 +254,15 @@ class TestJsonLd:
         # Self-issued ratings on your own product are a manual-action risk.
         assert "aggregateRating" not in json.dumps(graph)
 
-    def test_runtime_platform_agrees_with_pyproject(self) -> None:
+    def test_runtime_platform_agrees_with_the_contract(self) -> None:
         """The advertised Python floor is derived, not restated.
 
-        It used to be a literal in gen_site_seo.py, so `requires-python` could move
-        and the site would keep advertising the old floor with CI fully green.
+        It used to be a literal in gen_site_seo.py, so `requires-python` could
+        move and the site would keep advertising the old floor with CI fully
+        green. That floor lives upstream now, so the derivation runs through the
+        vendored contract instead.
         """
-        requires = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))["project"]["requires-python"]
-        floor = requires.lstrip(">=").split(",")[0].strip()
+        floor = CONTRACT["requires_python"].lstrip(">=").split(",")[0].strip()
         head = _head(_read(DOCS / "index.html"))
         graph = json.loads(re.search(r'ld\+json">(.*?)</script>', head, re.DOTALL).group(1))["@graph"]
         app = next(n for n in graph if n["@type"] == "SoftwareApplication")
@@ -281,10 +279,9 @@ class TestJsonLd:
         app = next(n for n in graph if n["@type"] == "SoftwareApplication")
         assert "Windows" not in app["operatingSystem"]
 
-    def test_urls_agree_with_pyproject(self) -> None:
-        meta = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))["project"]
-        assert seo.REPO_URL == meta["urls"]["Repository"], "generator and pyproject disagree on the repo URL"
-        assert seo.PYPI_URL.rstrip("/").endswith(meta["name"]), "PyPI URL does not match the package name"
+    def test_urls_agree_with_the_contract(self) -> None:
+        assert seo.REPO_URL == CONTRACT["repository"], "generator and contract disagree on the repo URL"
+        assert seo.PYPI_URL.rstrip("/").endswith(CONTRACT["package"]), "PyPI URL does not match the package name"
 
 
 class TestAnalytics:
@@ -419,7 +416,9 @@ class TestCrawlability:
     @pytest.mark.parametrize(
         "path",
         [p for p in PAGES if seo.KINDS[p.relative_to(DOCS).as_posix()] is seo.Kind.ARTICLE],
-        ids=[i for i, p in zip(IDS, PAGES) if seo.KINDS[p.relative_to(DOCS).as_posix()] is seo.Kind.ARTICLE],
+        ids=[
+            i for i, p in zip(IDS, PAGES, strict=True) if seo.KINDS[p.relative_to(DOCS).as_posix()] is seo.Kind.ARTICLE
+        ],
     )
     def test_current_page_is_marked_once(self, path: Path) -> None:
         foot = _read(path).partition(seo.FOOT_BEGIN)[2].partition(seo.FOOT_END)[0]
@@ -447,7 +446,7 @@ class TestRobotsAndSitemap:
 
     def test_required_site_files_exist(self) -> None:
         for name in ("404.html", ".nojekyll", "robots.txt", "sitemap.xml", "CNAME"):
-            assert (DOCS / name).exists(), f"docs/{name} is missing"
+            assert (DOCS / name).exists(), f"{name} is missing"
 
     def test_internal_design_docs_are_not_published(self) -> None:
         """They were readable at yeaboi.ai/superpowers/... for months."""
@@ -472,11 +471,11 @@ class TestUrlDerivation:
             ("docs/modes/retro.html", "/docs/modes/retro.html"),
         ],
     )
-    def test_url_for_applies_the_pages_strip_rule(self, rel: str, expected: str) -> None:
+    def test_url_for_maps_a_repo_path_to_its_served_url(self, rel: str, expected: str) -> None:
         assert seo.url_for(DOCS / rel) == expected
 
     def test_only_the_site_root_index_collapses(self) -> None:
-        """docs/docs/index.html must keep its filename.
+        """docs/index.html must keep its filename.
 
         Every NAV_GROUPS path, the hardcoded navigateTo("/docs/index.html") and
         setDocsCurrent's string equality use the explicit form; canonicalising

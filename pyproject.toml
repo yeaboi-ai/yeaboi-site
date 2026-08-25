@@ -1,0 +1,29 @@
+[project]
+name = "yeaboi-site"
+version = "0.1.0"
+description = "yeaboi.ai — the marketing and documentation site. Not a distribution; this file exists so the generator and its guards have a pinned runner."
+requires-python = ">=3.10"
+dependencies = []
+
+[project.optional-dependencies]
+# Only gen_og_card.py needs these, and only when the Open Graph card is
+# re-rendered — which happens when the brand art or the tagline changes, not on
+# a normal PR. Kept out of `dev` so CI installs neither.
+art = ["pillow>=10", "matplotlib>=3.8"]
+
+[dependency-groups]
+dev = ["pytest>=8.0", "ruff>=0.6"]
+
+# The site is flat HTML served by GitHub Pages; there is nothing to build.
+[tool.uv]
+package = false
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

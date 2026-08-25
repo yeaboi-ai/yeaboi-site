@@ -1,4 +1,4 @@
-"""Tests for docs/install.sh — the `curl | sh` bootstrapper behind yeaboi.ai/install.sh.
+"""Tests for install.sh — the `curl | sh` bootstrapper behind yeaboi.ai/install.sh.
 
 The script exists because `pip` and `pipx` both install with the interpreter they
 are run with, and hard-fail when it is too old — the single most common reason a
@@ -14,38 +14,34 @@ constrained: it must never read stdin (under `curl | sh` the script *is* stdin,
 so one `read` would swallow the rest of itself), and it must be POSIX sh (the
 documented invocation pipes into `sh`, which is dash on Debian and Ubuntu).
 
-The behavioural tests follow tests/unit/test_wt_script.py: build a stub PATH in
-tmp_path, run the real script, and inspect what it did.
+The behavioural tests build a stub PATH in tmp_path, run the real script, and
+inspect what it did.
 """
 
 from __future__ import annotations
 
+import json
 import os
 import re
 import shutil
 import subprocess
-import sys
 from pathlib import Path
 
 import pytest
 
-if sys.version_info >= (3, 11):
-    import tomllib
-else:  # 3.10 — tomllib landed in 3.11; the `dev` extra supplies the backport.
-    import tomli as tomllib
-
-ROOT = Path(__file__).resolve().parents[2]
-INSTALL_SH = ROOT / "docs" / "install.sh"
-README = ROOT / "README.md"
+ROOT = Path(__file__).resolve().parents[1]
+INSTALL_SH = ROOT / "install.sh"
 
 # The command the whole change exists to make the headline. Any drift between
-# this string and what the README/landing page actually show is a bug in the
-# funnel, not a formatting nit.
+# this string and what the landing page actually shows is a bug in the funnel,
+# not a formatting nit. The yeaboi repo asserts the same string against its
+# README, which is the PyPI project page.
 CURL_COMMAND = "curl -LsSf https://yeaboi.ai/install.sh | sh"
 
 # Read, never hardcoded: the installer's pin and the packaged floor are the same
 # string by design, and a test that spells it out is one more place to forget.
-FLOOR = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))["project"]["requires-python"]
+# It arrives from the yeaboi repo as a vendored contract — see contracts/site.json.
+FLOOR = json.loads((ROOT / "contracts" / "site.json").read_text(encoding="utf-8"))["requires_python"]
 
 
 def _run(script_env: dict[str, str], *, stdin_closed: bool = True) -> subprocess.CompletedProcess[str]:
@@ -330,11 +326,11 @@ class TestStatic:
     def test_python_specifier_matches_the_packaged_floor(self):
         """The coupling that keeps the installer honest as the floor moves.
 
-        install.sh's default and pyproject's requires-python are the same
-        constraint expressed twice; asserting equality is what stops one moving
-        without the other.
+        install.sh's default and the package's requires-python are the same
+        constraint expressed twice, in two repos now; asserting equality against
+        the vendored contract is what stops one moving without the other.
         """
-        requires = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))["project"]["requires-python"]
+        requires = FLOOR
         match = re.search(r'YEABOI_PYTHON="\$\{YEABOI_PYTHON:-(.+?)\}"', INSTALL_SH.read_text())
         assert match, "install.sh no longer defines a YEABOI_PYTHON default"
         assert match.group(1) == requires, (
@@ -351,26 +347,16 @@ class TestStatic:
 class TestDocumentedCommands:
     """The install commands users actually see must be the ones that cannot fail."""
 
-    def test_readme_leads_with_the_curl_command(self):
-        """README.md is the PyPI project page (pyproject sets readme = "README.md").
-
-        Whoever hits pip's Requires-Python error lands here next, so the command
-        that works has to be the first one on the page.
-        """
-        body = README.read_text()
-        quick_start = body.index("## 🚀 Quick Start")
-        first_block = body.index("```bash", quick_start)
-        assert CURL_COMMAND in body[first_block : first_block + 400]
-
     def test_no_bare_pipx_install_is_advertised(self):
         """`pipx install yeaboi` is the exact command that sends users to upgrade Python.
 
         pipx uses the interpreter it is running under and will not fetch one
         unless asked, so it may only appear with --python or --fetch-missing-python.
         """
-        # rglob, not glob: docs/docs/modes/ and docs/docs/agents/ carry install
-        # snippets too, and a plain glob left both unscanned.
-        surfaces = [README, ROOT / "docs" / "index.html", *(ROOT / "docs" / "docs").rglob("*.html")]
+        # rglob, not glob: docs/modes/ and docs/agents/ carry install snippets
+        # too, and a plain glob left both unscanned. The yeaboi repo asserts the
+        # same property over its README.
+        surfaces = [ROOT / "index.html", *(ROOT / "docs").rglob("*.html")]
         for path in surfaces:
             for line in path.read_text().splitlines():
                 if "pipx install" not in line:
@@ -380,14 +366,14 @@ class TestDocumentedCommands:
                 )
 
     def test_landing_hero_offers_the_curl_command(self):
-        assert CURL_COMMAND in (ROOT / "docs" / "index.html").read_text()
+        assert CURL_COMMAND in (ROOT / "index.html").read_text()
 
     def test_copy_buttons_copy_what_they_display(self):
         """A copy button that pastes something other than what it shows is invisible in review.
 
-        docs/assets/site.js reads data-copy verbatim; nothing else compares the two.
+        assets/site.js reads data-copy verbatim; nothing else compares the two.
         """
-        html = (ROOT / "docs" / "index.html").read_text()
+        html = (ROOT / "index.html").read_text()
         blocks = re.findall(
             r'<code>([^<]+)</code>\s*<button class="copy" data-copy="([^"]+)"',
             html,

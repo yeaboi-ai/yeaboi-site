@@ -1,0 +1,19 @@
+# Worktrees live inside the checkout, in every yeaboi repo.
+.claude/worktrees/
+
+# The pinned yeaboi-tooling clone. Provisioned at Makefile parse time from
+# .tooling-rev; never committed.
+.tooling/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+
+# Local environment
+.env
+
+# macOS
+.DS_Store

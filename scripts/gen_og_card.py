@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Render the 1200x630 Open Graph card served as docs/assets/og-card.png.
+"""Render the 1200x630 Open Graph card served as assets/og-card.png.
 
 Every page on yeaboi.ai points ``og:image`` and ``twitter:image`` at this file,
 so it is what a link to the site looks like in Slack, LinkedIn, X, iMessage and
 Google Discover.
 
-It exists because the obvious candidate does not work. ``docs/banner.jpg`` is
+It exists because the obvious candidate does not work. ``banner.jpg`` is
 already deployed, but it renders the words **"Scrum AI"** — the superseded
 product name — in neon, and it is 1200x400, outside the 1.91:1 band social
 cards crop to. Shipping it would put the wrong brand on every share.
@@ -36,12 +36,12 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-ASSETS = ROOT / "docs" / "assets"
+ASSETS = ROOT / "assets"
 OUT = ASSETS / "og-card.png"
 
 W, H = 1200, 630
 
-# Straight from the site's own tokens in docs/assets/site.css, so the card and
+# Straight from the site's own tokens in assets/site.css, so the card and
 # the page a click lands on are visibly the same product.
 BG = (11, 12, 14)  # --bg        #0b0c0e
 TEXT = (228, 230, 232)  # --text      #e4e6e8

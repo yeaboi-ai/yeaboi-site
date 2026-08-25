@@ -1,0 +1,63 @@
+# CI for yeaboi.ai — the site itself.
+#
+# There is no build step and no deploy job: GitHub Pages serves this repo's root
+# off `main` the moment a PR merges. So this workflow is the only thing standing
+# between a broken page and production, and the test suite is the gate.
+#
+# Job names become the required-check strings `ci / <job name>` — keep them
+# stable and identical to the other yeaboi repos so one ruleset is copy-paste.
+
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+jobs:
+  gate:
+    name: Lint, typecheck and test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      # The floor, not the newest interpreter: the guards read the same
+      # `requires_python` the site advertises, and running above it would let a
+      # construct the floor cannot parse through.
+      - run: uv python install 3.10
+      - run: make install
+      - run: make lint
+      - run: make format-check
+      - run: make test-fast
+      # Belt and braces: test-fast already asserts staleness page by page, but
+      # this is the message a human reads ("run make site-seo").
+      - run: make site-check
+
+  contracts:
+    name: Vendored contracts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      # Asserts contracts/site.json still matches the yeaboi sha in
+      # .contracts-rev, and notes when that pin has fallen behind upstream.
+      - run: make contracts-check
+
+  tooling:
+    name: Shared tooling contract
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      # Asserts the `.tooling` pin is honoured and that this repo defines every
+      # target the devkit's commands and hooks call on it. Without it, a renamed
+      # or deleted target is silent until somebody's Stop hook quietly stops
+      # verifying anything.
+      - run: make tooling-check
