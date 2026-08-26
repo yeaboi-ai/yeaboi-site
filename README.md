@@ -1,7 +1,39 @@
-# yeaboi-site
+<div align="center">
 
-[yeaboi.ai](https://yeaboi.ai) — the marketing and documentation site for
-[yeaboi](https://github.com/yeaboi-ai/yeaboi.ai), an AI Scrum Master for your terminal.
+<img src="https://yeaboi.ai/banner.jpg" alt="yeaboi.ai" width="800"/>
+
+# 🤙 yeaboi-site
+
+**[yeaboi.ai](https://yeaboi.ai) — the marketing site, the docs and the install script. Flat HTML, no build step, served off `main` by GitHub Pages.**
+
+[![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](LICENSE)
+[![Live](https://img.shields.io/badge/live-yeaboi.ai-8caaff?style=for-the-badge)](https://yeaboi.ai)
+[![Part of yeaboi](https://img.shields.io/badge/part%20of-yeaboi-ff6600?style=for-the-badge)](https://github.com/yeaboi-ai/yeaboi.ai)
+
+[![CI](https://img.shields.io/github/actions/workflow/status/yeaboi-ai/yeaboi-site/ci.yml?style=for-the-badge&label=CI&logo=github)](https://github.com/yeaboi-ai/yeaboi-site/actions)
+
+</div>
+
+---
+
+<div align="center">
+<img src="https://yeaboi.ai/demo-site.gif" alt="The yeaboi.ai landing page scrolling through its sections, then the documentation index" width="800"/>
+
+*What merging publishes. `make demo` re-records this from `demo_spec.py`.*
+</div>
+
+---
+
+## What this is
+
+The site for [yeaboi](https://github.com/yeaboi-ai/yeaboi.ai), an AI Scrum Master for your terminal,
+and one of **five repos that make one product** — the other four being the Python itself,
+[yeaboi-frontend](https://github.com/yeaboi-ai/yeaboi-frontend),
+[yeaboi-desktop](https://github.com/yeaboi-ai/yeaboi-desktop) and
+[yeaboi-tooling](https://github.com/yeaboi-ai/yeaboi-tooling).
+
+It also hosts the brand art and every demo GIF the other four READMEs point at — `banner.jpg`,
+`demo.gif`, and the `demo-*.gif` each repo records with its own `make demo`.
 
 Flat HTML. No framework, no bundler, no build step. GitHub Pages serves this repo's root off `main`,
 so **merging a PR publishes it.**
@@ -57,3 +89,7 @@ note when the pin is merely behind upstream.
 to import it — and written into a checkout of this one. `assets/duck-*.png` is the master brand art,
 read back the other way by that repo's sprite and icon generators. Both directions are rare and
 manual; see `yeaboi`'s CLAUDE.md.
+
+## 📄 License
+
+MIT License. See [LICENSE](LICENSE) for details.
