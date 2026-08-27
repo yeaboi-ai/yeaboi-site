@@ -1677,6 +1677,7 @@ var NAV_GROUPS = [
   { label: "Start", entries: [
     { title: "Documentation", path: "/docs/index.html" },
     { title: "Getting Started", path: "/docs/getting-started.html" },
+      { title: "Desktop App", path: "/docs/desktop.html" },
     { title: "CLI Reference", path: "/docs/cli-reference.html" },
   ] },
   { label: "Modes", entries: [

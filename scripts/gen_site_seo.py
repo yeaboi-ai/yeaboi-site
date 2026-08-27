@@ -128,11 +128,13 @@ class Kind(Enum):
 # new page without an entry here fails the suite with the exact edit named.
 KINDS: dict[str, Kind] = {
     "index.html": Kind.LANDING,
+    "desktop.html": Kind.PRODUCT,
     "404.html": Kind.ERROR,
     "docs/index.html": Kind.HUB,
     "docs/modes/index.html": Kind.HUB,
     "docs/agents/index.html": Kind.HUB,
     "docs/getting-started.html": Kind.ARTICLE,
+    "docs/desktop.html": Kind.ARTICLE,
     "docs/cli-reference.html": Kind.ARTICLE,
     "docs/integrations-exports.html": Kind.ARTICLE,
     "docs/session-management.html": Kind.ARTICLE,
