@@ -10,11 +10,11 @@ already deployed, but it renders the words **"Scrum AI"** — the superseded
 product name — in neon, and it is 1200x400, outside the 1.91:1 band social
 cards crop to. Shipping it would put the wrong brand on every share.
 
-**Not a build step.** Pillow ships only in the ``charts`` extra, so a normal
+**Not a build step.** Pillow ships only in the ``art`` extra, so a normal
 ``uv sync`` cannot run this — exactly the situation
 ``scripts/gen_duck_sprites.py`` is in, and it is deliberately absent from CI for
 the same reason. The output is committed and guarded instead by
-``tests/unit/test_site_seo.py``, which asserts the file exists, is 1200x630 and
+``tests/test_site_seo.py``, which asserts the file exists, is 1200x630 and
 is referenced by every page. A matplotlib upgrade could ship a different DejaVu
 build and re-rendering would differ by a byte, so a ``--check`` in CI would fail
 unrelated PRs.
@@ -25,7 +25,7 @@ so its fonts are guaranteed present, and nothing has to be committed.
 
 Usage::
 
-    uv run --extra charts python scripts/gen_og_card.py
+    uv run --extra art python scripts/gen_og_card.py
 """
 
 from __future__ import annotations
@@ -141,7 +141,7 @@ def build():
     draw.text((x + pad, 430 + pad - 2), cmd, font=mono, fill=ACCENT)
 
     small = _font("DejaVuSans.ttf", 22)
-    draw.text((x, 528), "planning · standups · retros · poker · reports · agents", font=small, fill=DIM)
+    draw.text((x, 528), "terminal app · mac app · mcp server", font=small, fill=DIM)
     draw.text((x, 562), f"MIT · Python {_floor()}+ · yeaboi.ai", font=small, fill=DIM)
     return card
 

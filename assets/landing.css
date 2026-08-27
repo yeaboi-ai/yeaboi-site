@@ -710,6 +710,31 @@
   .cta-panel .codeblock{max-width:430px}
   .cta-links{margin-top:22px; display:flex; gap:12px; flex-wrap:wrap}
 
+  /* ---------- download — the macOS app ----------
+     Not .btn, and the reason is the filenames. The two disk images differ only by
+     an arch token, so the sub-label IS the disambiguator and each target has to be
+     two lines. Emphasis is static (.is-recommended in the markup) and only ever
+     moved by JS, never assigned from nothing — see initDesktopDownload(). */
+  .dl-row{display:flex; gap:14px; flex-wrap:wrap; margin:28px 0 0}
+  .dl-btn{
+    display:flex; flex-direction:column; align-items:flex-start; gap:3px;
+    min-width:238px; padding:14px 22px;
+    border:1px solid var(--border-strong); border-radius:var(--radius);
+    background:var(--bg-raised); color:var(--text);
+    transition:border-color .18s, transform .18s, background .18s;
+  }
+  .dl-btn:hover{border-color:var(--accent); color:var(--text); transform:translateY(-1px)}
+  .dl-btn .dl-k{font-weight:600; font-size:.98rem; letter-spacing:-.01em}
+  .dl-btn .dl-sub{font-family:var(--mono); font-size:.74rem; letter-spacing:.04em; color:var(--text-dim)}
+  .dl-btn.is-recommended{border-color:var(--accent); background:var(--accent-dim)}
+  .dl-btn.is-recommended .dl-sub{color:var(--text-muted)}
+  .dl-hint{
+    margin:16px 0 0; max-width:56ch;
+    font-family:var(--mono); font-size:.78rem; line-height:1.7; color:var(--text-dim);
+  }
+  .dl-hint b{color:var(--text-muted); font-weight:600}
+  @media (max-width:600px){ .dl-btn{min-width:0; width:100%} }
+
   /* ---------- footer (left-aligned, on-theme) ---------- */
   /* divider fades in from the left (a border-image gradient rather than a flat
      hairline) so it reads as emerging into the footer rather than a hard rule */

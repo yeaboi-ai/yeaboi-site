@@ -82,7 +82,7 @@ logger = logging.getLogger(__name__)
 
 # Bump when anything under assets/ or docs/assets/ changes. Rewritten
 # into every ?v= on every page, so this is the only place it is ever edited.
-ASSET_VERSION = 136
+ASSET_VERSION = 137
 
 # A GA4 measurement ID is a public identifier — it ships in the page source of
 # every GA site on the web — so it belongs in the repo, not in a secret. While
@@ -121,6 +121,7 @@ class Kind(Enum):
     HUB = "hub"  # a section index that lists its children
     ARTICLE = "article"  # a leaf documentation page
     ERROR = "error"  # 404.html — noindex, no canonical, not in the sitemap
+    PRODUCT = "product"  # a product page at the site root, outside the docs tree
 
 
 # Two-way checked against the actual files on disk by test_site_seo.py, so a
@@ -297,6 +298,30 @@ _SOFTWARE_ID = f"{SITE}/#software"
 REPO_URL = CONTRACT["repository"]
 PYPI_URL = CONTRACT["pypi"]
 
+_DESKTOP_ID = f"{SITE}/#desktop"
+
+# The desktop app's source is private (yeaboi-ai/yeaboi-desktop); its installers are
+# published to a separate PUBLIC releases-only repo. That is the only host a download
+# link on this site may point at — tests/test_desktop_download.py holds the line.
+DESKTOP_RELEASES = "https://github.com/yeaboi-ai/yeaboi-desktop-releases"
+DESKTOP_DOWNLOAD = f"{DESKTOP_RELEASES}/releases/latest/download"
+
+# Version-LESS by contract, and matched by electron-builder's mac.artifactName over in
+# yeaboi-desktop. `releases/latest/download/<asset>` resolves only while <asset> is
+# identical across releases, so a ${version} in the name 404s every link here the day
+# after the next release — silently, because this repo has no build step and no link
+# checker. The arch token is mandatory for the opposite reason: electron-builder's
+# default omits it on x64, leaving a bare name that reads like the one to take.
+DESKTOP_ASSETS = {
+    "arm64": "yeaboi.ai-arm64.dmg",  # Apple silicon
+    "x64": "yeaboi.ai-x64.dmg",  # Intel
+}
+
+# What the app needs, and what it weighs. Both are stable facts; the version is not,
+# and nothing on this site states one.
+DESKTOP_MIN_MACOS = "macOS 12 Monterey or later"
+DESKTOP_SIZE = "~330 MB"
+
 
 def _organization() -> dict:
     return {
@@ -339,7 +364,52 @@ def _software_stub() -> dict:
         "@id": _SOFTWARE_ID,
         "name": "yeaboi",
         "applicationCategory": "DeveloperApplication",
+        "applicationSuite": "yeaboi",
         "operatingSystem": "macOS, Linux",
+    }
+
+
+def _desktop_software(description: str) -> dict:
+    """The Mac app — a SECOND SoftwareApplication, not a widening of the CLI's.
+
+    They are different artefacts with different truths. The CLI is a Python wheel
+    that runs on macOS and Linux and needs an interpreter; the app is a notarized
+    Electron bundle that runs on macOS only and carries its own. One node would have
+    to state an ``operatingSystem`` that is wrong for one of them — and
+    ``test_does_not_claim_native_windows`` guards the CLI's claim specifically, for a
+    reason that has nothing to do with the app: ``ui/shared/_input.py`` imports
+    ``termios`` at module scope.
+
+    Emitted in full rather than as a bare ``@id`` for the reason in ``_software_stub``.
+    """
+    return {
+        "@type": "SoftwareApplication",
+        "@id": _DESKTOP_ID,
+        "name": "yeaboi for Mac",
+        "applicationCategory": "DeveloperApplication",
+        "applicationSubCategory": "Project Management",
+        "applicationSuite": "yeaboi",
+        "operatingSystem": "macOS",
+        "url": f"{SITE}/desktop.html",
+        "description": description,
+        "downloadUrl": f"{DESKTOP_DOWNLOAD}/{DESKTOP_ASSETS['arm64']}",
+        "installUrl": f"{SITE}/desktop.html",
+        "softwareRequirements": DESKTOP_MIN_MACOS,
+        "codeRepository": REPO_URL,
+        "license": "https://opensource.org/licenses/MIT",
+        "isAccessibleForFree": True,
+        "publisher": {"@id": _ORG_ID},
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD",
+            "availability": "https://schema.org/InStock",
+            "category": "Free, open source (MIT)",
+        },
+        "softwareHelp": {"@type": "CreativeWork", "url": f"{SITE}/docs/desktop.html"},
+        "image": f"{SITE}{OG_CARD}",
+        # No softwareVersion, same rule as the CLI node: it moves every release and
+        # regenerates nothing here.
     }
 
 
@@ -434,6 +504,21 @@ def build_graph(kind: Kind, url: str, title: str, desc: str, h1: str, groups: li
     lookup = nav_lookup(groups)
     if kind is Kind.LANDING:
         nodes = [_organization(), _website(desc), _software_full(desc)]
+    elif kind is Kind.PRODUCT:
+        # No WebSite node — that one's @id and url are the site root, and this is not
+        # it. No docs breadcrumb either: the page is not in the docs tree.
+        nodes = [
+            _organization(),
+            _desktop_software(desc),
+            {
+                "@type": "BreadcrumbList",
+                "@id": f"{SITE}{url}#breadcrumb",
+                "itemListElement": [
+                    {"@type": "ListItem", "position": 1, "name": "Home", "item": f"{SITE}/"},
+                    {"@type": "ListItem", "position": 2, "name": h1},
+                ],
+            },
+        ]
     elif kind is Kind.HUB:
         nodes = [
             {
@@ -664,7 +749,9 @@ def render(path: Path, groups: list[dict]) -> str:
     desc_line = _DESC_RE.search(text).group(0).rstrip("\n")
     text = _splice(text, HEAD_BEGIN, HEAD_END, head_block(kind, url, title, desc, h1, groups), desc_line, after=True)
 
-    if kind is not Kind.LANDING and "</article>" in text:
+    # The crawlable docs footer belongs to the docs tree. A product page at the root
+    # is not in it, and has no sibling pages to list.
+    if kind in (Kind.HUB, Kind.ARTICLE, Kind.ERROR) and "</article>" in text:
         text = _splice(text, FOOT_BEGIN, FOOT_END, footer_block(url, groups), "</article>", after=True)
 
     text = _ASSET_V_RE.sub(rf"\g<1>{ASSET_VERSION}\g<2>", text)
@@ -707,10 +794,13 @@ def render_robots() -> str:
     )
 
 
-# Directories GitHub Pages does not serve. `.tooling/` is a clone of another
-# repo entirely; an .html under any of these would otherwise be treated as a
-# page of this site and demand a KINDS entry.
-_NOT_PUBLISHED = frozenset({".git", ".tooling", ".github", ".claude", "scripts", "tests", "contracts", "node_modules"})
+# Directories GitHub Pages does not serve. `.tooling/` is a clone of another repo
+# entirely and `.venv/` is a Python environment — `make site-og` installs matplotlib,
+# which ships HTML of its own. An .html under any of these would otherwise be treated
+# as a page of this site and demand a KINDS entry.
+_NOT_PUBLISHED = frozenset(
+    {".git", ".tooling", ".venv", ".github", ".claude", "scripts", "tests", "contracts", "node_modules"}
+)
 
 
 def pages() -> list[Path]:

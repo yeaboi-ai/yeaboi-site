@@ -24,6 +24,12 @@ _spec = importlib.util.spec_from_file_location("gen_og_card", _MODULE_PATH)
 og = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(og)
 
+# The dimensions the head block promises live over there, so they are read, not restated.
+_SEO_PATH = ROOT / "scripts" / "gen_site_seo.py"
+_seo_spec = importlib.util.spec_from_file_location("gen_site_seo", _SEO_PATH)
+seo = importlib.util.module_from_spec(_seo_spec)
+_seo_spec.loader.exec_module(seo)
+
 CONTRACT = json.loads((ROOT / "contracts" / "site.json").read_text(encoding="utf-8"))
 
 
@@ -65,3 +71,26 @@ class TestTheArtItReads:
         """Every page's og:image points at this path; test_site_seo asserts the
         file exists, and this asserts the generator is what puts it there."""
         assert og.OUT == ROOT / "assets" / "og-card.png"
+
+
+class TestTheCardAgreesWithThePages:
+    """The card is what search engines and Slack quote, and nothing compared it to
+    the pages until now."""
+
+    def test_the_install_chip_is_a_command_the_site_advertises(self) -> None:
+        source = _MODULE_PATH.read_text(encoding="utf-8")
+        chip = re.search(r'^\s*cmd = "(.+)"', source, re.M)
+        assert chip, "no install chip found — has the renderer changed?"
+        landing = (ROOT / "index.html").read_text(encoding="utf-8")
+        assert chip.group(1) in landing, f"the card draws {chip.group(1)!r}, which appears nowhere on the landing page"
+
+    def test_the_dimensions_the_meta_tags_promise_are_the_ones_rendered(self) -> None:
+        """og:image:width/height are stamped from constants and never compared to
+        the file. A card re-rendered at another size ships with lying meta and a
+        fully green suite."""
+        import struct
+
+        card = og.OUT.read_bytes()
+        assert card[:8] == b"\x89PNG\r\n\x1a\n", "og-card.png is not a PNG"
+        width, height = struct.unpack(">II", card[16:24])
+        assert (width, height) == (seo.OG_CARD_W, seo.OG_CARD_H)
