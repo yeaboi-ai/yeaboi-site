@@ -32,6 +32,14 @@ PAGES = seo.pages()
 NAV = seo.parse_nav_groups(seo.SITE_JS.read_text(encoding="utf-8"))
 IDS = [p.relative_to(DOCS).as_posix() for p in PAGES]
 
+#: The pages that carry the generated crawlable footer — the same set render() splices
+#: it into. The landing page and a product page at the site root are in neither the docs
+#: tree nor that footer. Pages and ids are derived together so a filter change cannot
+#: leave the two lists different lengths.
+_FOOTED = (seo.Kind.HUB, seo.Kind.ARTICLE, seo.Kind.ERROR)
+FOOTED_PAGES = [p for p in PAGES if seo.KINDS[p.relative_to(DOCS).as_posix()] in _FOOTED]
+FOOTED_IDS = [p.relative_to(DOCS).as_posix() for p in FOOTED_PAGES]
+
 
 def _read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
@@ -111,7 +119,7 @@ class TestRegistryParity:
         page_urls = {
             seo.url_for(p)
             for p in PAGES
-            if seo.KINDS[p.relative_to(DOCS).as_posix()] not in (seo.Kind.LANDING, seo.Kind.ERROR)
+            if seo.KINDS[p.relative_to(DOCS).as_posix()] in (seo.Kind.HUB, seo.Kind.ARTICLE)
         }
         assert nav_paths == page_urls, (
             f"NAV_GROUPS in assets/site.js disagrees with the docs pages on disk.\n"
@@ -222,6 +230,7 @@ class TestJsonLd:
             seo.Kind.LANDING: {"Organization", "WebSite", "SoftwareApplication"},
             seo.Kind.HUB: {"CollectionPage", "BreadcrumbList"},
             seo.Kind.ARTICLE: {"TechArticle", "BreadcrumbList"},
+            seo.Kind.PRODUCT: {"Organization", "SoftwareApplication", "BreadcrumbList"},
         }[kind]
         assert types == expected
 
@@ -276,7 +285,9 @@ class TestJsonLd:
         """
         head = _head(_read(DOCS / "index.html"))
         graph = json.loads(re.search(r'ld\+json">(.*?)</script>', head, re.DOTALL).group(1))["@graph"]
-        app = next(n for n in graph if n["@type"] == "SoftwareApplication")
+        # By @id, not "the first SoftwareApplication": this guards the CLI's claim,
+        # and the desktop app is a second node with an operatingSystem of its own.
+        app = next(n for n in graph if n.get("@id") == seo._SOFTWARE_ID)
         assert "Windows" not in app["operatingSystem"]
 
     def test_urls_agree_with_the_contract(self) -> None:
@@ -373,8 +384,8 @@ class TestCrawlability:
 
     @pytest.mark.parametrize(
         "path",
-        [p for p in PAGES if seo.KINDS[p.relative_to(DOCS).as_posix()] is not seo.Kind.LANDING],
-        ids=[i for i in IDS if i != "index.html"],
+        FOOTED_PAGES,
+        ids=FOOTED_IDS,
     )
     def test_footer_links_to_every_other_docs_page(self, path: Path) -> None:
         text = _read(path)
@@ -390,8 +401,8 @@ class TestCrawlability:
 
     @pytest.mark.parametrize(
         "path",
-        [p for p in PAGES if seo.KINDS[p.relative_to(DOCS).as_posix()] is not seo.Kind.LANDING],
-        ids=[i for i in IDS if i != "index.html"],
+        FOOTED_PAGES,
+        ids=FOOTED_IDS,
     )
     def test_footer_is_outside_article_and_inside_main(self, path: Path) -> None:
         """Placement is load-bearing, not cosmetic.
@@ -405,8 +416,8 @@ class TestCrawlability:
 
     @pytest.mark.parametrize(
         "path",
-        [p for p in PAGES if seo.KINDS[p.relative_to(DOCS).as_posix()] is not seo.Kind.LANDING],
-        ids=[i for i in IDS if i != "index.html"],
+        FOOTED_PAGES,
+        ids=FOOTED_IDS,
     )
     def test_footer_does_not_depend_on_js(self, path: Path) -> None:
         """[data-reveal] starts at opacity:0 (site.css) — never on a crawlable nav."""
@@ -453,10 +464,21 @@ class TestRobotsAndSitemap:
         assert not (DOCS / "superpowers").exists(), "internal design docs are back in the Pages root"
         assert not list(DOCS.glob("*.pdf")), "an orphan PDF is being served from the site root"
 
-    def test_no_page_embeds_the_demo_gif(self) -> None:
+    #: A GIF the browser must fetch before the page settles. The old form of this
+    #: asserted `"demo.gif" not in text`, which demo-desktop.gif and demo-site.gif
+    #: both slip past — it guarded a filename, not the property it was about.
+    GIF_BUDGET_KB = 250
+
+    def test_no_page_embeds_an_oversized_gif(self) -> None:
         """Fine as a README asset; a Core Web Vitals hit on a real page."""
         for path in PAGES:
-            assert "demo.gif" not in _read(path), f"{path.name} embeds the multi-MB demo GIF"
+            for src in re.findall(r'<img[^>]+src="(/?[^"]+\.gif)"', _read(path)):
+                asset = DOCS / src.lstrip("/")
+                assert asset.is_file(), f"{path.name} embeds a missing {src}"
+                kb = asset.stat().st_size / 1024
+                assert kb <= self.GIF_BUDGET_KB, (
+                    f"{path.name} embeds {src} at {kb:.0f} KB — link it instead, or re-encode it"
+                )
 
 
 class TestUrlDerivation:

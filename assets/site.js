@@ -948,6 +948,7 @@ document.addEventListener('DOMContentLoaded', function () {
   rescanReveals();
   initHeroDemo();
   initPipeCarousel();
+  initDesktopDownload();
   initDocsDuck();
 
   // give the current history entry a state object so the first Back works
@@ -1014,6 +1015,7 @@ function navigateTo(url, push) {
       rescanReveals();
       initHeroDemo();
       initPipeCarousel();
+      initDesktopDownload();
       initDocsDuck();
       scheduleDuckReveal();
       if (_updateScroll) _updateScroll();   // place the fresh duck on its perch NOW (still invisible), not at 0,0
@@ -1585,6 +1587,33 @@ function initHeroDemo() {
   } else {
     _heroRevealTimer = setTimeout(revealMenu, 2300); // matches splash.py's ~2.4s fade in/shine/fade out
   }
+}
+
+// ---- macOS download: which .dmg is yours -----------------------------------
+// A browser cannot tell an Apple-silicon Mac from an Intel one. navigator.platform
+// is frozen at "MacIntel" on BOTH, and the UA string still says "Intel Mac OS X
+// 10_15_7" on an M-series machine — both deliberate anti-fingerprinting measures.
+// So the page never hides a button: both are always shown, Apple silicon carries
+// .is-recommended in the markup (every Mac sold since Nov 2020), and all this does
+// is MOVE that emphasis when a browser volunteers a definitive answer.
+// userAgentData.getHighEntropyValues is Chromium-only; Safari and Firefox never
+// resolve it, and that absence means "no information", not "not Intel". Demotion
+// only — it never promotes on an inference.
+function initDesktopDownload() {
+  var row = document.querySelector('.dl-row');
+  if (!row) return;
+  var arm = row.querySelector('[data-arch="arm64"]');
+  var intel = row.querySelector('[data-arch="x64"]');
+  var uad = navigator.userAgentData;
+  if (!arm || !intel || !uad || !uad.getHighEntropyValues) return;
+  uad
+    .getHighEntropyValues(['architecture', 'platform'])
+    .then(function (hints) {
+      if (hints.platform !== 'macOS' || hints.architecture !== 'x86') return;
+      intel.classList.add('is-recommended');
+      arm.classList.remove('is-recommended');
+    })
+    .catch(function () {}); // rejects when a hint is not granted
 }
 
 // ---- mobile pipeline carousel indicator -----------------------------------
