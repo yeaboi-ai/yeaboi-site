@@ -711,16 +711,15 @@
   .cta-links{margin-top:22px; display:flex; gap:12px; flex-wrap:wrap}
 
   /* ---------- download — the macOS app ----------
-     One control in two states, not two buttons. Both targets are the same
-     .dl-btn; .is-recommended is the whole difference between the action and the
-     alternate, so the swap initDesktopDownload() performs on an Intel Mac stays
-     symmetric — see that function. The alternate drops its own "Download for
-     Mac" line and shows only the arch: two identical labels side by side made
-     the visitor read 12px mono to find the one meant for them. */
+     One control in two states. Both targets are the same .dl-btn;
+     .is-recommended styles the action and everything else styles the alternate,
+     which drops its own label and shows only the architecture it is for.
+     initDesktopDownload() moves that class on an Intel Mac, so both states have
+     to read correctly whichever anchor carries it. */
   :root{
     /* Apple's mark as a mask, so it takes the button's colour in either state.
-       U+F8FF (the  glyph) is private-use and draws a tofu box everywhere that
-       is not an Apple platform, so the shape has to be a path. */
+       A path rather than U+F8FF, which is private-use and renders only on Apple
+       platforms. */
     --apple-mark:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23fff' d='M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z'/%3E%3C/svg%3E");
   }
   .dl-apple{
@@ -743,25 +742,26 @@
 
   /* the action */
   .dl-btn.is-recommended{
+    order:-1;
     padding:17px 28px; border-color:transparent;
     background:var(--text); color:var(--bg);
     box-shadow:0 16px 36px -20px rgba(140,170,255,.8);
   }
   .dl-btn.is-recommended .dl-k{color:var(--bg)}
-  .dl-btn.is-recommended .dl-sub{color:rgba(11,12,14,.6)}
+  .dl-btn.is-recommended .dl-sub{color:color-mix(in srgb, var(--bg) 62%, var(--text))}
   .dl-btn.is-recommended:hover{background:var(--accent-bright); color:var(--bg); transform:translateY(-2px)}
 
   /* the alternate */
   .dl-btn:not(.is-recommended) .dl-k{display:none}
-  .dl-btn:not(.is-recommended){padding:14px 18px; gap:11px}
+  .dl-btn:not(.is-recommended){padding:14px 16px; gap:10px}
   .dl-btn:not(.is-recommended) .dl-sub{font-size:.77rem; letter-spacing:.03em; color:var(--text-muted)}
   .dl-btn:not(.is-recommended) .dl-apple{width:13px; height:15px}
 
-  /* the facts that used to be buried in the hint paragraph */
+  /* what the download weighs and what it needs */
   .dl-meta{display:flex; flex-wrap:wrap; gap:8px 9px; margin:20px 0 0; padding:0; list-style:none}
   .dl-meta li{
-    font-family:var(--mono); font-size:.7rem; letter-spacing:.1em; text-transform:uppercase;
-    color:var(--text-dim); border:1px solid var(--border); border-radius:999px; padding:4px 11px;
+    font-family:var(--mono); font-size:.71rem; letter-spacing:.1em; text-transform:uppercase;
+    color:var(--text-muted); border:1px solid var(--border); border-radius:999px; padding:4px 11px;
   }
   .dl-meta .is-good{color:var(--success); border-color:rgba(89,192,126,.3)}
   .dl-hint{
@@ -772,16 +772,14 @@
   .dl-hint a{white-space:nowrap}
 
   /* ---------- the Dock ----------
-     What this release actually changed: the app has a Dock icon. Built from the
-     same three duck layers the mascot walks on, on the icon generator's plate
-     (rgb(18,43,34)→rgb(8,16,14), radius 208/1024, duck at 0.74 —
-     yeaboi-desktop/scripts/gen_desktop_icons.py) so the page cannot drift from
-     the art the .icns is rendered from. */
-  .mac-split{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,392px); gap:56px; align-items:center}
+     A macOS Dock holding the app's icon, built from the same three duck layers
+     the mascot walks on. The plate mirrors the desktop repo's icon generator:
+     rgb(18,43,34)→rgb(8,16,14) at a 208/1024 corner radius. */
+  .mac-split{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,392px); gap:40px; align-items:center}
   .mac-split .tagline{font-size:clamp(2.4rem,4.4vw,3.4rem)}
   /* the top padding is the magnified icon's overhang plus room for its label,
      so neither can ever ride up into the copy above when the split stacks */
-  .dock{--dock-icon:92px; --dock-h:52px; display:flex; justify-content:center; padding:86px 0 6px}
+  .dock{--dock-icon:92px; --dock-h:52px; display:flex; justify-content:center; padding:94px 0 6px}
   .dock-tray{
     position:relative; display:flex; align-items:flex-end; gap:10px; padding:9px 12px 10px;
     border:1px solid rgba(255,255,255,.1); border-radius:20px;
@@ -808,7 +806,7 @@
   }
   .dock-label{
     position:absolute; left:50%; transform:translateX(-50%); white-space:nowrap;
-    bottom:calc(var(--dock-icon) + 14px);
+    bottom:calc(var(--dock-icon) + 22px);
     font-family:var(--mono); font-size:.72rem; color:var(--text);
     background:rgba(28,30,34,.94); border:1px solid rgba(255,255,255,.1);
     border-radius:6px; padding:4px 10px;
@@ -833,11 +831,11 @@
   [data-reveal].is-visible .app-icon{animation:dock-bounce 1.2s cubic-bezier(.28,.9,.34,1) .35s 1 both}
   @keyframes dock-bounce{
     0%{transform:translateY(0)}
-    22%{transform:translateY(-26px)}
+    22%{transform:translateY(-14px)}
     44%{transform:translateY(0)}
-    58%{transform:translateY(-9px)}
+    58%{transform:translateY(-5px)}
     76%{transform:translateY(0)}
-    88%{transform:translateY(-3px)}
+    88%{transform:translateY(-2px)}
     100%{transform:translateY(0)}
   }
   @media (prefers-reduced-motion:reduce){
@@ -873,7 +871,11 @@
   }
   .fact dd{margin:0; color:var(--text-muted); font-size:.97rem; line-height:1.66; max-width:62ch}
 
-  @media (max-width:980px){
+  /* body carries padding-left:var(--rail) until 900px, so the copy column is the
+     viewport less the rail, the wrap's padding, the gap and the dock's track.
+     Two columns only below this point once that leaves room for the download
+     row's two buttons side by side. */
+  @media (max-width:1360px){
     .mac-split{grid-template-columns:1fr; gap:24px}
     .dock{justify-content:flex-start}
   }
@@ -883,7 +885,7 @@
   @media (max-width:600px){
     .dl-row{gap:10px}
     .dl-btn{min-width:0; width:100%}
-    .dock{--dock-icon:70px; --dock-h:42px; padding-top:72px}
+    .dock{--dock-icon:70px; --dock-h:42px; padding-top:82px}
     .dock-tray{gap:8px; padding:8px 10px 9px}
   }
 
