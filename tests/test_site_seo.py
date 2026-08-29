@@ -370,6 +370,18 @@ class TestAssetVersioning:
         assert found == {str(seo.ASSET_VERSION)}, f"mixed ?v= values across docs/: {sorted(found)}"
 
     @pytest.mark.parametrize("path", PAGES, ids=IDS)
+    def test_every_stylesheet_and_script_carries_a_cache_bust(self, path: Path) -> None:
+        """A page with NO ?v= at all used to pass every check here.
+
+        The generator only rewrites a bust that is already present, and the test
+        above compares the values it finds — so a new page that simply never had one
+        satisfied both, and would keep serving a stale stylesheet through every
+        future bump. Images are deliberately exempt: they are content-stable.
+        """
+        for ref in re.findall(r'(?:href|src)="(/(?:docs/)?assets/[^"]+\.(?:css|js)[^"]*)"', _read(path)):
+            assert "?v=" in ref, f"{path.name} references {ref} with no cache-bust"
+
+    @pytest.mark.parametrize("path", PAGES, ids=IDS)
     def test_versioned_assets_exist(self, path: Path) -> None:
         for ref in re.findall(r'(?:href|src)="(/(?:docs/)?assets/[^"?]+)\?v=\d+"', _read(path)):
             assert (DOCS / ref.lstrip("/")).exists(), f"{path.name} references missing asset {ref}"
