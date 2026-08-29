@@ -49,9 +49,9 @@ gtag('config','G-K9HLPT5ZMP',{client_storage:'none',ads_data_redaction:true});
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400..700&family=JetBrains+Mono:wght@400..800&display=swap" />
-<link rel="stylesheet" href="/assets/site.css?v=138" />
-<link rel="stylesheet" href="/assets/landing.css?v=138" />
-<link rel="stylesheet" href="/docs/assets/docs.css?v=138" />
+<link rel="stylesheet" href="/assets/site.css?v=140" />
+<link rel="stylesheet" href="/assets/landing.css?v=140" />
+<link rel="stylesheet" href="/docs/assets/docs.css?v=140" />
 </head>
 <body>
 
@@ -78,7 +78,9 @@ gtag('config','G-K9HLPT5ZMP',{client_storage:'none',ads_data_redaction:true});
           <button class="copy" data-copy="curl -LsSf https://yeaboi.ai/install.sh | sh" aria-label="Copy install command">copy</button>
         </div>
         <a class="btn btn-primary" href="/docs/getting-started.html">Get started →</a>
-        <a class="btn" href="/desktop.html">Get the Mac app →</a>
+        <a class="btn btn-mac" href="/desktop.html">
+          <span class="dl-apple" aria-hidden="true"></span>Mac app<span class="btn-new">new</span>
+        </a>
       </div>
       <p class="subnote">brings its own Python · or <a href="https://pypi.org/project/yeaboi/"><code>uv tool install yeaboi</code></a> · macOS &amp; Linux · MIT</p>
       <span class="scroll-hint">see it in action</span>
@@ -436,7 +438,7 @@ gtag('config','G-K9HLPT5ZMP',{client_storage:'none',ads_data_redaction:true});
         </a>
       </div>
 
-      <ul class="dl-meta">
+      <ul class="dl-meta" role="list">
         <li>.dmg · ~330 MB</li>
         <li>macOS 12 Monterey or later</li>
         <li class="is-good">signed &amp; notarized</li>
@@ -450,9 +452,8 @@ gtag('config','G-K9HLPT5ZMP',{client_storage:'none',ads_data_redaction:true});
         app below. (Native Windows isn't supported at all; use WSL.)</p>
     </div>
 
-    <!-- The Dock, drawn in markup from the same three duck layers the mascot
-         walks on: this release's actual news is that the app has an icon that
-         lives here. Plate constants mirror gen_desktop_icons.py. -->
+    <!-- A macOS Dock holding the app's icon, drawn in markup from the same
+         three duck layers the mascot walks on. -->
     <div class="dock" data-reveal aria-hidden="true">
       <div class="dock-tray">
         <span class="dock-slot"></span>
@@ -551,6 +552,6 @@ gtag('config','G-K9HLPT5ZMP',{client_storage:'none',ads_data_redaction:true});
 </main>
 
 <script src="https://unpkg.com/lenis@1.3.4/dist/lenis.min.js"></script>
-<script src="/assets/site.js?v=138"></script>
+<script src="/assets/site.js?v=140"></script>
 </body>
 </html>
