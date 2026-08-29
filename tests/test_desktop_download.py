@@ -142,3 +142,15 @@ class TestPlatformHonesty:
         text = _read(ROOT / "docs" / "desktop.html")
         assert "xattr" in text, "the docs should at least name the thing you should NOT need"
         assert "should <em>not</em> need" in text
+
+
+def test_the_hero_offers_the_mac_app_before_a_visitor_has_to_scroll() -> None:
+    """The download section sits below the modes; the hero is what most people see.
+
+    Without a link up here the whole launch is invisible above the fold: the hero
+    offered the curl install and the docs, and nothing else, so a visitor looking
+    for the app had to scroll past every mode card to find it.
+    """
+    landing = (ROOT / "index.html").read_text(encoding="utf-8")
+    hero = landing[: landing.index('<section id="modes"')]
+    assert "/desktop.html" in hero, "nothing above the modes points at the Mac app"
