@@ -82,7 +82,7 @@ logger = logging.getLogger(__name__)
 
 # Bump when anything under assets/ or docs/assets/ changes. Rewritten
 # into every ?v= on every page, so this is the only place it is ever edited.
-ASSET_VERSION = 139
+ASSET_VERSION = 140
 
 # A GA4 measurement ID is a public identifier — it ships in the page source of
 # every GA site on the web — so it belongs in the repo, not in a secret. While

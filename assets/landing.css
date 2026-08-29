@@ -52,6 +52,23 @@
   .subnote{margin:16px 0 0; font-family:var(--mono); font-size:.8rem; color:var(--text-dim)}
   .subnote a{color:var(--text-muted)} .subnote a:hover{color:var(--accent)}
 
+  /* the Mac app in the hero row. It sits beside a filled primary and an install
+     command, so it carries the mark and the tag rather than a third ghost
+     outline; the ground is the app icon's own plate colour. */
+  .btn-mac{
+    background:linear-gradient(180deg, rgba(24,58,44,.62), rgba(17,19,23,.92));
+    border-color:rgba(42,170,105,.32); gap:8px; padding-right:14px;
+  }
+  .btn-mac:hover{
+    border-color:rgba(42,170,105,.7); color:var(--text); background:linear-gradient(180deg, rgba(30,72,54,.8), rgba(19,23,27,.95));
+  }
+  .btn-mac .dl-apple{width:13px; height:16px}
+  .btn-new{
+    font-family:var(--mono); font-size:.62rem; letter-spacing:.12em; text-transform:uppercase;
+    line-height:1; padding:3px 7px; border-radius:999px;
+    color:var(--success); border:1px solid rgba(89,192,126,.34); background:rgba(42,170,105,.09);
+  }
+
   /* staggered hero entrance */
   @keyframes rise{from{opacity:0; transform:translateY(22px)} to{opacity:1; transform:none}}
   .hero-copy > *{animation:rise .8s cubic-bezier(.2,.6,.2,1) both}
