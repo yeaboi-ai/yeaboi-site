@@ -711,29 +711,181 @@
   .cta-links{margin-top:22px; display:flex; gap:12px; flex-wrap:wrap}
 
   /* ---------- download — the macOS app ----------
-     Not .btn, and the reason is the filenames. The two disk images differ only by
-     an arch token, so the sub-label IS the disambiguator and each target has to be
-     two lines. Emphasis is static (.is-recommended in the markup) and only ever
-     moved by JS, never assigned from nothing — see initDesktopDownload(). */
-  .dl-row{display:flex; gap:14px; flex-wrap:wrap; margin:28px 0 0}
+     One control in two states, not two buttons. Both targets are the same
+     .dl-btn; .is-recommended is the whole difference between the action and the
+     alternate, so the swap initDesktopDownload() performs on an Intel Mac stays
+     symmetric — see that function. The alternate drops its own "Download for
+     Mac" line and shows only the arch: two identical labels side by side made
+     the visitor read 12px mono to find the one meant for them. */
+  :root{
+    /* Apple's mark as a mask, so it takes the button's colour in either state.
+       U+F8FF (the  glyph) is private-use and draws a tofu box everywhere that
+       is not an Apple platform, so the shape has to be a path. */
+    --apple-mark:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23fff' d='M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z'/%3E%3C/svg%3E");
+  }
+  .dl-apple{
+    flex:none; width:16px; height:19px; background:currentColor;
+    -webkit-mask:var(--apple-mark) no-repeat center/contain;
+    mask:var(--apple-mark) no-repeat center/contain;
+  }
+  .dl-row{display:flex; align-items:stretch; gap:12px; flex-wrap:wrap; margin:30px 0 0}
   .dl-btn{
-    display:flex; flex-direction:column; align-items:flex-start; gap:3px;
-    min-width:238px; padding:14px 22px;
+    display:flex; align-items:center; gap:14px; padding:15px 22px;
     border:1px solid var(--border-strong); border-radius:var(--radius);
-    background:var(--bg-raised); color:var(--text);
-    transition:border-color .18s, transform .18s, background .18s;
+    background:var(--bg-raised); color:var(--text-muted);
+    transition:border-color .18s, color .18s, background .18s, transform .18s, box-shadow .18s;
   }
   .dl-btn:hover{border-color:var(--accent); color:var(--text); transform:translateY(-1px)}
-  .dl-btn .dl-k{font-weight:600; font-size:.98rem; letter-spacing:-.01em}
-  .dl-btn .dl-sub{font-family:var(--mono); font-size:.74rem; letter-spacing:.04em; color:var(--text-dim)}
-  .dl-btn.is-recommended{border-color:var(--accent); background:var(--accent-dim)}
-  .dl-btn.is-recommended .dl-sub{color:var(--text-muted)}
+  .dl-btn:focus-visible{outline:2px solid var(--accent-bright); outline-offset:3px}
+  .dl-btn .dl-t{display:flex; flex-direction:column; gap:2px; min-width:0}
+  .dl-btn .dl-k{font-weight:640; font-size:1.02rem; letter-spacing:-.012em; color:var(--text)}
+  .dl-btn .dl-sub{font-family:var(--mono); font-size:.73rem; letter-spacing:.05em; color:var(--text-dim)}
+
+  /* the action */
+  .dl-btn.is-recommended{
+    padding:17px 28px; border-color:transparent;
+    background:var(--text); color:var(--bg);
+    box-shadow:0 16px 36px -20px rgba(140,170,255,.8);
+  }
+  .dl-btn.is-recommended .dl-k{color:var(--bg)}
+  .dl-btn.is-recommended .dl-sub{color:rgba(11,12,14,.6)}
+  .dl-btn.is-recommended:hover{background:var(--accent-bright); color:var(--bg); transform:translateY(-2px)}
+
+  /* the alternate */
+  .dl-btn:not(.is-recommended) .dl-k{display:none}
+  .dl-btn:not(.is-recommended){padding:14px 18px; gap:11px}
+  .dl-btn:not(.is-recommended) .dl-sub{font-size:.77rem; letter-spacing:.03em; color:var(--text-muted)}
+  .dl-btn:not(.is-recommended) .dl-apple{width:13px; height:15px}
+
+  /* the facts that used to be buried in the hint paragraph */
+  .dl-meta{display:flex; flex-wrap:wrap; gap:8px 9px; margin:20px 0 0; padding:0; list-style:none}
+  .dl-meta li{
+    font-family:var(--mono); font-size:.7rem; letter-spacing:.1em; text-transform:uppercase;
+    color:var(--text-dim); border:1px solid var(--border); border-radius:999px; padding:4px 11px;
+  }
+  .dl-meta .is-good{color:var(--success); border-color:rgba(89,192,126,.3)}
   .dl-hint{
-    margin:16px 0 0; max-width:56ch;
-    font-family:var(--mono); font-size:.78rem; line-height:1.7; color:var(--text-dim);
+    margin:14px 0 0; max-width:60ch;
+    font-family:var(--mono); font-size:.76rem; line-height:1.7; color:var(--text-dim);
   }
   .dl-hint b{color:var(--text-muted); font-weight:600}
-  @media (max-width:600px){ .dl-btn{min-width:0; width:100%} }
+  .dl-hint a{white-space:nowrap}
+
+  /* ---------- the Dock ----------
+     What this release actually changed: the app has a Dock icon. Built from the
+     same three duck layers the mascot walks on, on the icon generator's plate
+     (rgb(18,43,34)→rgb(8,16,14), radius 208/1024, duck at 0.74 —
+     yeaboi-desktop/scripts/gen_desktop_icons.py) so the page cannot drift from
+     the art the .icns is rendered from. */
+  .mac-split{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,392px); gap:56px; align-items:center}
+  .mac-split .tagline{font-size:clamp(2.4rem,4.4vw,3.4rem)}
+  /* the top padding is the magnified icon's overhang plus room for its label,
+     so neither can ever ride up into the copy above when the split stacks */
+  .dock{--dock-icon:92px; --dock-h:52px; display:flex; justify-content:center; padding:86px 0 6px}
+  .dock-tray{
+    position:relative; display:flex; align-items:flex-end; gap:10px; padding:9px 12px 10px;
+    border:1px solid rgba(255,255,255,.1); border-radius:20px;
+    background:rgba(255,255,255,.055);
+    -webkit-backdrop-filter:blur(22px); backdrop-filter:blur(22px);
+    box-shadow:0 32px 62px -30px rgba(0,0,0,.9), 0 1px 0 rgba(255,255,255,.06) inset;
+  }
+  .dock-slot{
+    flex:none; width:var(--dock-h); height:var(--dock-h); border-radius:12px;
+    background:linear-gradient(180deg, rgba(255,255,255,.075), rgba(255,255,255,.028));
+    border:1px solid rgba(255,255,255,.05);
+  }
+  /* ours sits lifted and named, the way the Dock magnifies the icon under the
+     pointer. The box keeps the tray's own height (--dock-h) and the icon
+     overhangs it, so the tray is never stretched by the magnification. */
+  .dock-app{
+    position:relative; flex:none; margin:0 6px;
+    width:var(--dock-icon); height:var(--dock-h);
+  }
+  .dock-app .app-icon{position:absolute; bottom:0; left:0; width:100%}
+  .dock-run{
+    position:absolute; bottom:-7px; left:50%; margin-left:-2px;
+    width:4px; height:4px; border-radius:50%; background:var(--text-muted);
+  }
+  .dock-label{
+    position:absolute; left:50%; transform:translateX(-50%); white-space:nowrap;
+    bottom:calc(var(--dock-icon) + 14px);
+    font-family:var(--mono); font-size:.72rem; color:var(--text);
+    background:rgba(28,30,34,.94); border:1px solid rgba(255,255,255,.1);
+    border-radius:6px; padding:4px 10px;
+    -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px);
+  }
+  .app-icon{
+    position:relative; aspect-ratio:1; border-radius:20.3%;
+    background:linear-gradient(180deg, rgb(18,43,34), rgb(8,16,14));
+    box-shadow:
+      0 0 0 1.5px rgba(146,214,178,.4),
+      0 1px 0 rgba(255,255,255,.1) inset,
+      0 22px 40px -14px rgba(0,0,0,.9);
+  }
+  .app-icon .ai-rig{position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:72%}
+  .app-icon img{
+    display:block; width:100%; height:auto; image-rendering:pixelated;
+    user-select:none; -webkit-user-drag:none;
+  }
+  .app-icon .ai-wing,.app-icon .ai-glasses{position:absolute; top:0; left:0}
+  /* the one motion moment on these pages: a single Dock bounce as the strip
+     arrives, never a loop */
+  [data-reveal].is-visible .app-icon{animation:dock-bounce 1.2s cubic-bezier(.28,.9,.34,1) .35s 1 both}
+  @keyframes dock-bounce{
+    0%{transform:translateY(0)}
+    22%{transform:translateY(-26px)}
+    44%{transform:translateY(0)}
+    58%{transform:translateY(-9px)}
+    76%{transform:translateY(0)}
+    88%{transform:translateY(-3px)}
+    100%{transform:translateY(0)}
+  }
+  @media (prefers-reduced-motion:reduce){
+    [data-reveal].is-visible .app-icon{animation:none}
+  }
+
+  /* the launch band — the one section on the landing page with a ground of its
+     own, tinted from the icon plate so arriving in it reads as news */
+  .launch{position:relative; isolation:isolate}
+  /* the ground runs under the nav rail too — body carries padding-left:var(--rail),
+     so a background on the section itself would stop at the rail's inner edge and
+     read as a seam. isolation: keeps the -1 above the page's own ground. */
+  .launch::before{
+    content:""; position:absolute; z-index:-1;
+    top:0; bottom:0; right:0; left:calc(-1 * var(--rail));
+    border-top:1px solid var(--border); border-bottom:1px solid var(--border);
+    background:
+      radial-gradient(90% 120% at 74% 16%, rgba(42,170,105,.1), transparent 62%),
+      linear-gradient(180deg, rgba(18,43,34,.36), rgba(11,12,14,0) 78%);
+  }
+  @media (max-width:900px){ .launch::before{left:0} }
+
+  /* what it isn't — a term and its qualification, at a readable measure */
+  .facts{margin:36px 0 0; padding:0}
+  .fact{
+    display:grid; grid-template-columns:236px minmax(0,1fr); gap:6px 36px;
+    padding:20px 0; border-top:1px solid var(--border);
+  }
+  .fact:last-child{border-bottom:1px solid var(--border)}
+  .fact dt{
+    font-family:var(--mono); font-size:.74rem; letter-spacing:.1em; text-transform:uppercase;
+    color:var(--text); font-weight:500;
+  }
+  .fact dd{margin:0; color:var(--text-muted); font-size:.97rem; line-height:1.66; max-width:62ch}
+
+  @media (max-width:980px){
+    .mac-split{grid-template-columns:1fr; gap:24px}
+    .dock{justify-content:flex-start}
+  }
+  @media (max-width:760px){
+    .fact{grid-template-columns:1fr; gap:8px; padding:18px 0}
+  }
+  @media (max-width:600px){
+    .dl-row{gap:10px}
+    .dl-btn{min-width:0; width:100%}
+    .dock{--dock-icon:70px; --dock-h:42px; padding-top:72px}
+    .dock-tray{gap:8px; padding:8px 10px 9px}
+  }
 
   /* ---------- footer (left-aligned, on-theme) ---------- */
   /* divider fades in from the left (a border-image gradient rather than a flat

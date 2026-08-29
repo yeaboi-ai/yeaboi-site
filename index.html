@@ -49,9 +49,9 @@ gtag('config','G-K9HLPT5ZMP',{client_storage:'none',ads_data_redaction:true});
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400..700&family=JetBrains+Mono:wght@400..800&display=swap" />
-<link rel="stylesheet" href="/assets/site.css?v=137" />
-<link rel="stylesheet" href="/assets/landing.css?v=137" />
-<link rel="stylesheet" href="/docs/assets/docs.css?v=137" />
+<link rel="stylesheet" href="/assets/site.css?v=138" />
+<link rel="stylesheet" href="/assets/landing.css?v=138" />
+<link rel="stylesheet" href="/docs/assets/docs.css?v=138" />
 </head>
 <body>
 
@@ -406,34 +406,72 @@ gtag('config','G-K9HLPT5ZMP',{client_storage:'none',ads_data_redaction:true});
 </section>
 
 
-<section id="download">
-  <div class="wrap">
-    <p class="eyebrow">new · the mac app</p>
-    <h2>Or run the whole thing <em>in a window.</em></h2>
-    <p class="section-lede">Same yeaboi, same modes, same <code>~/.yeaboi</code> — as a Mac app.
-      It brings its own Python, so there is nothing to install first and no terminal to open.
-      Signed and notarized by Apple: double-click and it runs.</p>
+<section id="download" class="launch">
+  <div class="wrap mac-split">
+    <div>
+      <p class="eyebrow">new · yeaboi for mac</p>
+      <h2>Now it has a <em>Dock icon.</em></h2>
+      <p class="section-lede">Same modes, same <code>~/.yeaboi</code>, same sessions — in a window
+        instead of a terminal. It brings its own Python, so there is nothing to install first.
+        Signed and notarized by Apple: double-click and it runs.</p>
 
-    <div class="dl-row" data-reveal>
-      <a class="dl-btn is-recommended" data-arch="arm64" rel="noopener"
-         href="https://github.com/yeaboi-ai/yeaboi-desktop-releases/releases/latest/download/yeaboi.ai-arm64.dmg">
-        <span class="dl-k">Download for Mac</span>
-        <span class="dl-sub">Apple silicon · M1 and later</span>
-      </a>
-      <a class="dl-btn" data-arch="x64" rel="noopener"
-         href="https://github.com/yeaboi-ai/yeaboi-desktop-releases/releases/latest/download/yeaboi.ai-x64.dmg">
-        <span class="dl-k">Download for Mac</span>
-        <span class="dl-sub">Intel · 2020 and earlier</span>
-      </a>
+      <div class="dl-row" data-reveal>
+        <a class="dl-btn is-recommended" data-arch="arm64" rel="noopener"
+           aria-label="Download for Mac — Apple silicon"
+           href="https://github.com/yeaboi-ai/yeaboi-desktop-releases/releases/latest/download/yeaboi.ai-arm64.dmg">
+          <span class="dl-apple" aria-hidden="true"></span>
+          <span class="dl-t">
+            <span class="dl-k">Download for Mac</span>
+            <span class="dl-sub">Apple silicon · M1 and later</span>
+          </span>
+        </a>
+        <a class="dl-btn" data-arch="x64" rel="noopener"
+           aria-label="Download for Mac — Intel"
+           href="https://github.com/yeaboi-ai/yeaboi-desktop-releases/releases/latest/download/yeaboi.ai-x64.dmg">
+          <span class="dl-apple" aria-hidden="true"></span>
+          <span class="dl-t">
+            <span class="dl-k">Download for Mac</span>
+            <span class="dl-sub">Intel · 2020 and earlier</span>
+          </span>
+        </a>
+      </div>
+
+      <ul class="dl-meta">
+        <li>.dmg · ~330 MB</li>
+        <li>macOS 12 Monterey or later</li>
+        <li class="is-good">signed &amp; notarized</li>
+      </ul>
+
+      <p class="dl-hint">Which one? <b>Apple menu → About This Mac.</b> A <b>Chip</b> line means
+        Apple silicon; a <b>Processor</b> line means Intel. ·
+        <a href="/desktop.html">what's in it, and what it isn't →</a></p>
+
+      <p class="note">Windows and Linux don't have the app yet — there, yeaboi is the terminal
+        app below. (Native Windows isn't supported at all; use WSL.)</p>
     </div>
 
-    <p class="dl-hint">Not sure which? <b>Apple menu → About This Mac.</b> If it says
-      <b>Chip: Apple M-something</b>, take Apple silicon; if it says <b>Processor: Intel</b>,
-      take Intel. · ~330 MB · macOS 12 Monterey or later ·
-      <a href="/desktop.html">what's in it, and what it isn't →</a></p>
-
-    <p class="note">Windows and Linux don't have the app yet — there, yeaboi is the terminal
-      app below. (Native Windows isn't supported at all; use WSL.)</p>
+    <!-- The Dock, drawn in markup from the same three duck layers the mascot
+         walks on: this release's actual news is that the app has an icon that
+         lives here. Plate constants mirror gen_desktop_icons.py. -->
+    <div class="dock" data-reveal aria-hidden="true">
+      <div class="dock-tray">
+        <span class="dock-slot"></span>
+        <span class="dock-slot"></span>
+        <span class="dock-app">
+          <span class="dock-label">yeaboi.ai</span>
+          <span class="app-icon">
+            <span class="ai-rig">
+              <img src="/assets/duck-base.png" alt="" />
+              <img class="ai-wing" src="/assets/duck-wing.png" alt="" />
+              <img class="ai-glasses" src="/assets/duck-glasses.png" alt="" />
+            </span>
+          </span>
+          <span class="dock-run"></span>
+        </span>
+        <span class="dock-slot"></span>
+        <span class="dock-slot"></span>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -513,6 +551,6 @@ gtag('config','G-K9HLPT5ZMP',{client_storage:'none',ads_data_redaction:true});
 </main>
 
 <script src="https://unpkg.com/lenis@1.3.4/dist/lenis.min.js"></script>
-<script src="/assets/site.js?v=137"></script>
+<script src="/assets/site.js?v=138"></script>
 </body>
 </html>

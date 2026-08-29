@@ -49,9 +49,9 @@ gtag('config','G-K9HLPT5ZMP',{client_storage:'none',ads_data_redaction:true});
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400..700&family=JetBrains+Mono:wght@400..800&display=swap" />
-<link rel="stylesheet" href="/assets/site.css?v=137" />
-<link rel="stylesheet" href="/assets/landing.css?v=137" />
-<link rel="stylesheet" href="/docs/assets/docs.css?v=137" />
+<link rel="stylesheet" href="/assets/site.css?v=138" />
+<link rel="stylesheet" href="/assets/landing.css?v=138" />
+<link rel="stylesheet" href="/docs/assets/docs.css?v=138" />
 </head>
 <body>
 
@@ -68,30 +68,68 @@ gtag('config','G-K9HLPT5ZMP',{client_storage:'none',ads_data_redaction:true});
 <main id="page-content">
 
 <section id="top">
-  <div class="wrap">
-    <span class="badge">macOS · signed &amp; notarized</span>
-    <h1 class="tagline">yeaboi for <em>Mac.</em></h1>
-    <p class="lede">The whole of yeaboi — planning, standups, retros, poker, 1:1s, delivery
-      reports, and the agent watchers — in a window instead of a terminal. It brings its own
-      Python, so there is nothing to install first.</p>
+  <div class="wrap mac-split">
+    <div>
+      <span class="badge">new · the mac app</span>
+      <h1 class="tagline">yeaboi for <em>Mac.</em></h1>
+      <p class="lede">The whole of yeaboi — planning, standups, retros, poker, 1:1s, delivery
+        reports, and the agent watchers — in a window instead of a terminal. It brings its own
+        Python, so there is nothing to install first.</p>
 
-    <div class="dl-row" data-reveal>
-      <a class="dl-btn is-recommended" data-arch="arm64" rel="noopener"
-         href="https://github.com/yeaboi-ai/yeaboi-desktop-releases/releases/latest/download/yeaboi.ai-arm64.dmg">
-        <span class="dl-k">Download for Mac</span>
-        <span class="dl-sub">Apple silicon · M1 and later</span>
-      </a>
-      <a class="dl-btn" data-arch="x64" rel="noopener"
-         href="https://github.com/yeaboi-ai/yeaboi-desktop-releases/releases/latest/download/yeaboi.ai-x64.dmg">
-        <span class="dl-k">Download for Mac</span>
-        <span class="dl-sub">Intel · 2020 and earlier</span>
-      </a>
+      <div class="dl-row" data-reveal>
+        <a class="dl-btn is-recommended" data-arch="arm64" rel="noopener"
+           aria-label="Download for Mac — Apple silicon"
+           href="https://github.com/yeaboi-ai/yeaboi-desktop-releases/releases/latest/download/yeaboi.ai-arm64.dmg">
+          <span class="dl-apple" aria-hidden="true"></span>
+          <span class="dl-t">
+            <span class="dl-k">Download for Mac</span>
+            <span class="dl-sub">Apple silicon · M1 and later</span>
+          </span>
+        </a>
+        <a class="dl-btn" data-arch="x64" rel="noopener"
+           aria-label="Download for Mac — Intel"
+           href="https://github.com/yeaboi-ai/yeaboi-desktop-releases/releases/latest/download/yeaboi.ai-x64.dmg">
+          <span class="dl-apple" aria-hidden="true"></span>
+          <span class="dl-t">
+            <span class="dl-k">Download for Mac</span>
+            <span class="dl-sub">Intel · 2020 and earlier</span>
+          </span>
+        </a>
+      </div>
+
+      <ul class="dl-meta">
+        <li>.dmg · ~330 MB</li>
+        <li>macOS 12 Monterey or later</li>
+        <li class="is-good">signed &amp; notarized</li>
+      </ul>
+
+      <p class="dl-hint">Which one? <b>Apple menu → About This Mac.</b> A <b>Chip</b> line means
+        Apple silicon; a <b>Processor</b> line means Intel. ·
+        <a href="/docs/desktop.html">install guide →</a></p>
     </div>
 
-    <p class="dl-hint">Not sure which? <b>Apple menu → About This Mac.</b> If it says
-      <b>Chip: Apple M-something</b>, take Apple silicon; if it says <b>Processor: Intel</b>,
-      take Intel. · ~330 MB · macOS 12 Monterey or later ·
-      <a href="/docs/desktop.html">install guide →</a></p>
+    <!-- The Dock, drawn in markup from the same three duck layers the mascot
+         walks on: this release's actual news is that the app has an icon that
+         lives here. Plate constants mirror gen_desktop_icons.py. -->
+    <div class="dock" data-reveal aria-hidden="true">
+      <div class="dock-tray">
+        <span class="dock-slot"></span>
+        <span class="dock-slot"></span>
+        <span class="dock-app">
+          <span class="dock-label">yeaboi.ai</span>
+          <span class="app-icon">
+            <span class="ai-rig">
+              <img src="/assets/duck-base.png" alt="" />
+              <img class="ai-wing" src="/assets/duck-wing.png" alt="" />
+              <img class="ai-glasses" src="/assets/duck-glasses.png" alt="" />
+            </span>
+          </span>
+          <span class="dock-run"></span>
+        </span>
+        <span class="dock-slot"></span>
+        <span class="dock-slot"></span>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -101,19 +139,19 @@ gtag('config','G-K9HLPT5ZMP',{client_storage:'none',ads_data_redaction:true});
     <h2>An app, not a <em>wrapper.</em></h2>
     <div class="modes">
       <div class="mode-card" data-reveal style="--mh:var(--m-planning)">
-        <div class="mode-head"><span class="num">01</span><h3>Self-contained</h3></div>
+        <div class="mode-head"><h3>Self-contained</h3></div>
         <p>The installer carries its own Python runtimes and starts its backend on a loopback
           port. No <code>pip</code>, no interpreter to pick, nothing to configure before it opens.</p>
         <span class="mode-tag">no python · no setup</span>
       </div>
       <div class="mode-card" data-reveal style="--mh:var(--m-analysis)">
-        <div class="mode-head"><span class="num">02</span><h3>The same yeaboi</h3></div>
+        <div class="mode-head"><h3>The same yeaboi</h3></div>
         <p>Same engines, same modes, same <code>~/.yeaboi</code>. Sessions you started in the
           terminal open in the app, and back again — install both and they agree.</p>
         <span class="mode-tag">shared sessions · shared config</span>
       </div>
       <div class="mode-card" data-reveal style="--mh:var(--m-retro)">
-        <div class="mode-head"><span class="num">03</span><h3>Signed and notarized</h3></div>
+        <div class="mode-head"><h3>Signed and notarized</h3></div>
         <p>Built, signed with an Apple Developer ID and notarized by Apple on every release.
           No Gatekeeper workaround, no right-click-to-open, no <code>xattr</code>.</p>
         <span class="mode-tag">developer id · notarized</span>
@@ -128,13 +166,23 @@ gtag('config','G-K9HLPT5ZMP',{client_storage:'none',ads_data_redaction:true});
     <h2>Worth being clear <em>about.</em></h2>
     <p class="section-lede">It is a shell over the same engine, not a different product — and
       not a hosted one. Everything it computes, it computes on your machine.</p>
-    <p class="note"><strong>macOS only, for now.</strong> Windows and Linux builds exist in the
-      pipeline but are not shipped yet. On those, yeaboi is the terminal app.</p>
-    <p class="note"><strong>The terminal app is not going anywhere.</strong> It remains the
-      primary surface, on macOS and Linux both, and it is what
-      <a href="/install.sh">install.sh</a> installs.</p>
-    <p class="note"><strong>Native Windows is unsupported either way.</strong> The terminal UI
-      needs a POSIX terminal; use WSL. That is a property of the CLI, not of this app.</p>
+    <dl class="facts">
+      <div class="fact">
+        <dt>macOS only, for now</dt>
+        <dd>Windows and Linux builds exist in the pipeline but are not shipped yet. On those,
+          yeaboi is the terminal app.</dd>
+      </div>
+      <div class="fact">
+        <dt>The terminal app stays</dt>
+        <dd>It remains the primary surface, on macOS and Linux both, and it is what
+          <a href="/install.sh">install.sh</a> installs.</dd>
+      </div>
+      <div class="fact">
+        <dt>Native Windows, either way</dt>
+        <dd>The terminal UI needs a POSIX terminal; use WSL. That is a property of the CLI,
+          not of this app.</dd>
+      </div>
+    </dl>
   </div>
 </section>
 
@@ -192,6 +240,6 @@ gtag('config','G-K9HLPT5ZMP',{client_storage:'none',ads_data_redaction:true});
 </main>
 
 <script src="https://unpkg.com/lenis@1.3.4/dist/lenis.min.js"></script>
-<script src="/assets/site.js?v=137"></script>
+<script src="/assets/site.js?v=138"></script>
 </body>
 </html>
