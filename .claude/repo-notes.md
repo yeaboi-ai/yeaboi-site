@@ -67,3 +67,24 @@ Nothing rewrites the branch. A later push is a plain `git push`.
 ## Unattended lane
 
 None — every PR here is hand-shipped, so the `pr-feedback` review is advisory.
+
+## Clips
+
+A clip here is `kind: "page"`, serving this tree the way Pages does:
+
+```python
+"serve": ["make", "serve"],   # scripts/serve_docs.py on :8899, not python -m http.server
+"serve_cwd": ".",
+```
+
+`make serve` is used rather than a plain static server because it matches Pages' semantics —
+extensionless URLs and the 404 path resolve the way they will in production, so a clip cannot show
+a route that only works locally.
+
+**A scrolling page is the worst case for GIF**: every pixel changes in every frame. The repo's
+`demo_spec.py` drops to `gif_fps: 10` and `gif_colors: 96` to stay under the 6MB verifier bound, and
+a clip that scrolls needs the same. A clip that only shows one section should not scroll at all —
+`hash` to it and hold.
+
+Use `scroll` in small amounts: the step already moves 18px at a time so the screencast has motion to
+send, and a single large jump emits one frame and reads as a cut.

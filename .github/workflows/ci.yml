@@ -42,6 +42,21 @@ jobs:
       # this is the message a human reads ("run make site-seo").
       - run: make site-check
 
+  # Optional by construction: the nudge always exits 0, and neither job may be
+  # a required check. Pinned to the same sha as .tooling-rev so one bump moves
+  # the recorder and the workflow that drives it together.
+  clips:
+    name: Feature clips
+    uses: yeaboi-ai/yeaboi-tooling/.github/workflows/clip-check.yml@377cf65dadeafd6b69e713f1f0f6a6bf1721ef31
+    permissions:
+      contents: read
+      pull-requests: write
+    with:
+      surface-paths: |
+        *.html
+        docs/*
+        assets/*
+
   contracts:
     name: Vendored contracts
     runs-on: ubuntu-latest
