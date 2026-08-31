@@ -27,7 +27,10 @@ class NoCacheHandler(http.server.SimpleHTTPRequestHandler):
 
 def main() -> None:
     os.chdir(_SITE)
-    port = int(os.environ.get("PORT", "8899"))
+    # YEABOI_SITE_PORT before PORT: mk/common.mk is included by all five repos,
+    # and a bare PORT exported into every recipe is far too generic to own.
+    # PORT stays as the back-compatible override.
+    port = int(os.environ.get("YEABOI_SITE_PORT") or os.environ.get("PORT") or "8899")
     # ThreadingHTTPServer, not TCPServer: a browser opens several connections at
     # once for the page's CSS/JS/images, and a single-threaded server serves the
     # HTML then wedges on the next keep-alive connection — the page renders
