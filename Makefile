@@ -80,8 +80,8 @@ site-check: ## Fail if any generated page is stale (also asserted by make test)
 site-og: ## Re-render the 1200x630 Open Graph card (needs Pillow — the `art` extra)
 	$(UV) run --extra art python scripts/gen_og_card.py
 
-serve: ## Serve the site on :8899 exactly as GitHub Pages would, to preview before merging
-	@echo "→ http://localhost:8899  (Ctrl-C to stop)"
+serve: ## Serve the site exactly as GitHub Pages would, to preview before merging (:8899 unless the worktree has its own block)
+	@echo "→ http://localhost:$(or $(YEABOI_SITE_PORT),8899)  (Ctrl-C to stop)"
 	$(UV) run python scripts/serve_docs.py
 
 ship-gate: lint format-check test contracts-check tooling-check ## The full local gate /ship runs

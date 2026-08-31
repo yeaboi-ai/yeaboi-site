@@ -20,3 +20,6 @@ __pycache__/
 
 # Feature clips render here; only the spec in .demo/clips/ is committed.
 .demo/out/
+
+# This worktree's generated ports (written by the shared wt.sh).
+/.worktree.env
