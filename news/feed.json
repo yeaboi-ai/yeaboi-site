@@ -1,0 +1,18 @@
+{
+  "version": "https://jsonfeed.org/version/1.1",
+  "title": "yeaboi news",
+  "home_page_url": "https://yeaboi.ai/",
+  "feed_url": "https://yeaboi.ai/news/feed.json",
+  "description": "Posts and videos from yeaboi. The desktop's front page reads this file; add an item per post or video, newest first.",
+  "items": [
+    {
+      "id": "https://yeaboi.ai/desktop.html",
+      "url": "https://yeaboi.ai/desktop.html",
+      "title": "yeaboi for Mac, the desktop app",
+      "summary": "The same planning, standups, retros and agent reports, in a window. Self-contained: no Python, no terminal, no setup.",
+      "date_published": "2026-08-29T15:47:09+01:00",
+      "image": "https://yeaboi.ai/assets/og-card.png",
+      "_yeaboi": { "kind": "post" }
+    }
+  ]
+}
