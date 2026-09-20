@@ -88,7 +88,7 @@ note when the pin is merely behind upstream.
 `graph.png` and `demo.gif`/`demo.cast.gz` are produced by scripts in the `yeaboi` repo — they have
 to import it — and written into a checkout of this one. `assets/duck-*.png` is the master brand art,
 read back the other way by that repo's sprite and icon generators. Both directions are rare and
-manual; see `yeaboi`'s CLAUDE.md.
+manual; see `yeaboi`'s AGENTS.md.
 
 ## 📄 License
 
